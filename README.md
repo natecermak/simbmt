@@ -1,4 +1,4 @@
-# SimBMS - Simulate Better Mass Transit
+# SimBMT - Simulate Better Mass Transit
 
 This is a python library oriented towards evaluating and (hopefully) demonstrating the benefits of user-aware bus^1 routing schemes. By user-aware, we mean that bus behavior depends on when and where the riders are, and where they wish to go.
 
