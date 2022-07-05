@@ -1,0 +1,58 @@
+\documentclass[11pt]{article} % use larger type; default would be 10pt
+
+\usepackage[utf8]{inputenc} % set input encoding (not needed with XeLaTeX)
+\usepackage{bm}
+
+\usepackage{geometry} % to change the page dimensions
+\geometry{letterpaper} % or letterpaper (US) or a5paper or....
+%%% The "real" document content comes below...
+
+\title{Quantitative Analysis of the Benefits of User-Aware Mass Transit Networks}
+\author{The Author}
+\date{}
+
+\begin{document}
+\maketitle
+
+\textbf{Problem: }There is a bus that will traverse a line segment $S$ from $\bm{\vec{b}_1} = (x_1, y_1)$ to  $\bm{\vec{b}_2} = (x_2, y_2)$ at speed $v_b$, starting at some time $t_1$ potentially in the future ($t_1$ is greater than or equal to 0). At $t=0$, you are a passenger at $\bm{\vec{p}} = (x_p, y_p)$, and you walk at speed $v_p$. The bus will pick you up so long as you are on the line segment (the bus doesnt have discrete stops, but will pick you up if it sees you in its path). Can you catch the bus, and if so, over what subset of the line $S$?
+
+\vspace{0.5cm}
+\noindent \textbf{Answer: } You can catch the bus if you can reach any point on the route before the bus reaches that same point, or algebraically:
+$$A(d) =  t_p(d) - t_b(d) > 0 \mbox{, for some } d \in [0,  \|\bm{\vec{b}_2} - \bm{\vec{b}_1}\|] $$
+where 
+\begin{itemize}
+\item $d$ is the scalar distance the bus has travelled from $\bm{\vec{b}_1}$ towards $\bm{\vec{b}_2}$,
+\item $A(d)$ is the amount of time the passenger can arrive before the bus (if it's negative, the bus arrives first)
+\item $t_p(d)$ is the time at which the \textbf{passenger} arrives at the point along the segment $S$, distance $d$ from the $\bm{\vec{b}_1}$
+\item $t_b(d)$ is the time at which the \textbf{bus} arrives at the point along the segment $S$, distance $d$ from the $\bm{\vec{b}_1}$
+\end{itemize}
+
+The time at which the bus arrives is just $t_b(d) = t_1 + \frac{d}{v_b}$
+
+The time for the passenger to arrive, $t_p(d)$ is a bit harder. 
+For convenience, lets say  $\bm{\vec{\beta}}$ is the unit vector pointing from $\bm{\vec{b}_1}$ to $\bm{\vec{b}_2}$ (that is,  $\bm{\vec{\beta}}$ = $\frac{\bm{\vec{b}_2} - \bm{\vec{b}_1}}{\|\bm{\vec{b}_2} - \bm{\vec{b}_1}\|}$).
+$$ t_p(d) = \frac{ \| (\bm{\vec{b}_1} + d\bm{\vec{\beta}}) - \bm{\vec{p}} \|} {v_p} $$
+
+Therefore, we can catch the bus iff
+$$ \frac{ \| \bm{\vec{b}_1} + d\bm{\vec{\beta}} - \bm{\vec{p}} \|} {v_p} - \left(t_1 + \frac{d}{v_b}\right) > 0 \mbox{, for some } d \in [0,  \|\bm{\vec{b}_2} - \bm{\vec{b}_1}\|] $$
+
+say $\alpha = \bm{\vec{b}_1} - \bm{\vec{p}}$
+
+$$ \frac{ \sqrt{ ||\bm{\vec{\alpha}}||^2 + d^2||\bm{\vec{\beta}}||^2 + 2d(\bm{\vec{\alpha}} \cdot \bm{\vec{\beta}}) }} {v_p} - \left(t_1 + \frac{d}{v_b}\right) > 0 \mbox{, for some } d \in [0,  \|\bm{\vec{b}_2} - \bm{\vec{b}_1}\|] $$
+
+Square some shit:
+
+$$ \frac{ ||\bm{\vec{\alpha}}||^2 + d^2||\bm{\vec{\beta}}||^2 + 2d(\bm{\vec{\alpha}} \cdot \bm{\vec{\beta}}) } {v_p^2} - \left(t_1 + \frac{d}{v_b}\right)^2 > 0 \mbox{, for some } d \in [0,  \|\bm{\vec{b}_2} - \bm{\vec{b}_1}\|] $$
+
+Expand:
+
+$$ \frac{ ||\bm{\vec{\alpha}}||^2 + d^2||\bm{\vec{\beta}}||^2 + 2d(\bm{\vec{\alpha}} \cdot \bm{\vec{\beta}}) } {v_p^2} - t_1^2 - \frac{d^2}{v_b^2} - 2 \frac{dt_1}{v_b} > 0 \mbox{, for some } d \in [0,  \|\bm{\vec{b}_2} - \bm{\vec{b}_1}\|] $$
+
+Group some like terms:
+
+$$ \left(\frac{||\bm{\vec{\beta}}||^2}{v_p^2}  - \frac{1}{v_b^2}\right) d^2 + 
+\left(\frac{2(\bm{\vec{\alpha}} \cdot \bm{\vec{\beta}}) } {v_p^2} - 2 \frac{t_1}{v_b}\right) d +
+\left(\frac{ ||\bm{\vec{\alpha}}||^2}{v_p^2} - t_1^2 \right)
+  > 0 \mbox{, for some } d \in [0,  \|\bm{\vec{b}_2} - \bm{\vec{b}_1}\|] $$
+
+\end{document}
