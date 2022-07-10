@@ -13,6 +13,7 @@ from naber_oracle import NaberOracle
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s :: %(levelname)s :: %(message)s")
 logger = logging.getLogger(__name__)
 
+np.set_printoptions(precision=2)
 
 class State:
     def __init__(self, busses: List[Bus], passengers: List[Passenger]):
@@ -52,9 +53,10 @@ class State:
 
 # oracle and simulation both need access to this dictionary
 simulation_parameters = dict(
-    n_bus=20,  # number of busses
-    passenger_rate=0.1,  # per timestep
+    n_bus=3,  # number of busses
+    passenger_rate=0.0,  # per timestep
     bus_speed=0.03,  # city length, per timestep
+    passenger_speed=0.003,  # city length, per timestep
     pickup_eps=1e-4,  # pickup radius
 )
 
@@ -73,7 +75,7 @@ state = State(
 # oracle = NaberOracle(simulation_parameters, state)
 
 oracle = StaticRouteOracle(simulation_parameters)
-oracle.set_grid_routes(simulation_parameters["n_bus"] // 4, simulation_parameters["n_bus"] // 4)
+oracle.set_grid_routes(3, 0)
 oracle.initialize_busses(state, num_routes=len(oracle.routes))
 
 # state.plot()
