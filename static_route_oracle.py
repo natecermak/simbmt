@@ -8,6 +8,9 @@ import trigonometry as trig
 logger = logging.getLogger(__name__)
 
 
+# TODO: a route should be a 2-column np array, not a list of 2x2 np arrays.
+
+
 class StaticRouteOracle:
     def __init__(self, params: Dict):
         self.params = params  # keep track of simulation parameters
@@ -32,6 +35,11 @@ class StaticRouteOracle:
     def set_hub_and_spoke_routes(self, nh: int, ns: int) -> None:
         # TODO: define this
         pass
+
+    def set_single_square_route(self, ns: int) -> None:
+        self.routes = []
+        a = 0.1
+        self.routes.append(np.array[[a, a], [1-a, a]])
 
     def initialize_busses(self, state, num_routes: int) -> None:
         # evenly distribute busses between routes
@@ -87,6 +95,7 @@ class StaticRouteOracle:
 
         # check which buses it is even possible to get on
         for bus in state.busses:
+            print(f"Bus {bus.id} on route {bus.route}")
             timetable = self.get_bus_timetable(bus, 1)
             for row in timetable:
 
@@ -99,9 +108,19 @@ class StaticRouteOracle:
                     vb=self.params['bus_speed'],
                 )
                 if ls is None:
-                    print(f"Unreachable: {row}")
+                    print(f"  Unreachable: {row}")
                 else:
-                    print(f"Can reach:   {row}")
+                    print(f"  Can reach:   {row}")
+
+            dropoff_time = trig.find_best_dropoff_point(
+                x=passenger.destination,
+                timetable=timetable,
+                vp=self.params['passenger_speed'],
+                vb=self.params['bus_speed'],
+            )
+            print(f'best dropoff time for this bus: {dropoff_time}')
+
+
         # TODO: Placeholder for now
         passenger.plan = True
 
@@ -110,8 +129,7 @@ class StaticRouteOracle:
         """ get a n x 5 table (t, x0, y0, x1, y1) from NOW (t=0) till t=t=max """
         table = np.empty((10, 5))
         route = self.routes[bus.route]
-        print(route)
-        print(len(route))
+
         table[0, 0] = 0
         table[0, 1:3] = bus.loc
         table[0, 3:5] = route[bus.tci]
@@ -129,4 +147,3 @@ class StaticRouteOracle:
         # input()
 
         return table
-    

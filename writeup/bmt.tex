@@ -14,10 +14,11 @@
 \begin{document}
 \maketitle
 
-\textbf{Problem: }There is a bus that will traverse a line segment $S$ from $\bm{\vec{b}_1} = (x_1, y_1)$ to  $\bm{\vec{b}_2} = (x_2, y_2)$ at speed $v_b$, starting at some time $t_1$ potentially in the future ($t_1$ is greater than or equal to 0). At $t=0$, you are a passenger at $\bm{\vec{p}} = (x_p, y_p)$, and you walk at speed $v_p$. The bus will pick you up so long as you are on the line segment (the bus doesnt have discrete stops, but will pick you up if it sees you in its path). Can you catch the bus, and if so, over what subset of the line $S$?
+\section*{Problem 1: }
+There is a bus that will traverse a line segment $S$ from $\bm{\vec{b}_1} = (x_1, y_1)$ to  $\bm{\vec{b}_2} = (x_2, y_2)$ at speed $v_b$, starting at some time $t_1$ potentially in the future ($t_1$ is greater than or equal to 0). At $t=0$, you are a passenger at $\bm{\vec{p}} = (x_p, y_p)$, and you walk at speed $v_p$. The bus will pick you up so long as you are on the line segment (the bus doesnt have discrete stops, but will pick you up if it sees you in its path). Can you catch the bus, and if so, over what subset of the line $S$?
 
-\vspace{0.5cm}
-\noindent \textbf{Answer: } You can catch the bus if you can reach any point on the route before the bus reaches that same point, or algebraically:
+ \vspace{0.5cm}\noindent \textbf{Answer: } 
+ You can catch the bus if you can reach any point on the route before the bus reaches that same point, or algebraically:
 $$A(d) =  t_p(d) - t_b(d) < 0 \mbox{, for some } d \in [0,  \|\bm{\vec{b}_2} - \bm{\vec{b}_1}\|] $$
 where 
 \begin{itemize}
@@ -37,7 +38,7 @@ Therefore, we can catch the bus iff
 $$ \frac{ \| \bm{\vec{b}_1} + d\bm{\vec{\beta}} - \bm{\vec{p}} \|} {v_p} - \left(t_1 + \frac{d}{v_b}\right) < 0 \mbox{, for some } d \in [0,  \|\bm{\vec{b}_2} - \bm{\vec{b}_1}\|] $$
 
 say $\alpha = \bm{\vec{b}_1} - \bm{\vec{p}}$
-
+  
 $$ \frac{ \sqrt{ ||\bm{\vec{\alpha}}||^2 + d^2||\bm{\vec{\beta}}||^2 + 2d(\bm{\vec{\alpha}} \cdot \bm{\vec{\beta}}) }} {v_p} - \left(t_1 + \frac{d}{v_b}\right) < 0 \mbox{, for some } d \in [0,  \|\bm{\vec{b}_2} - \bm{\vec{b}_1}\|] $$
 
 Square some shit:
@@ -56,5 +57,38 @@ $$ \left(\frac{||\bm{\vec{\beta}}||^2}{v_p^2}  - \frac{1}{v_b^2}\right) d^2 +
   < 0 \mbox{, for some } d \in [0,  \|\bm{\vec{b}_2} - \bm{\vec{b}_1}\|] $$
 
 Now we... *checks notes from 7th grade algebra about quadratics*... go about solving this quadratic. 
+
+\section*{Problem 2: }
+You're on a bus that will traverse a line segment $S$ from $\bm{\vec{b}_1} = (x_1, y_1)$ to  $\bm{\vec{b}_2} = (x_2, y_2)$ at speed $v_b$. You can get off at any time and walk the rest of the way to your destination $\bm{\vec{d}}$ (likely off of the line segment $S$) at speed $v_p$ (assume $v_p < v_b$). At what time should you get off in order to get to your destination as fast as possible?
+
+\vspace{0.5cm} \noindent \textbf{Answer:}
+You should get off when the bus' velocity component in the direction of your destination drops below your walking speed. As before, for convenience, lets say $\bm{\vec{\beta}} = \frac{\bm{\vec{b}_2} - \bm{\vec{b}_1}}{\|\bm{\vec{b}_2} - \bm{\vec{b}_1}\|}$ is a unit vector pointed along the bus's path. Algebraically, this is 
+
+$$\frac{\bm{\vec{v}} \cdot \bm{\vec{u}(t)}}{\|\bm{\vec{u}(t)}\|}  < v_p$$
+
+where $\bm{\vec{u}(t)} = \bm{\vec{d}} - (\bm{\vec{b}_1} + v_b t\bm{\vec{\beta}})$ and $\bm{\vec{v}} =  v_b\bm{\vec{\beta}}$
+
+Oh boy. Let's do some algebra and plug things in. I'm also going to solve for when these become equal. 
+
+
+$$\frac{  v_b\bm{\vec{\beta}}  \cdot    (\bm{\vec{d}} - (\bm{\vec{b}_1} + v_b t\bm{\vec{\beta}}))  }{\|  \bm{\vec{d}} - (\bm{\vec{b}_1} + v_b t\bm{\vec{\beta}})  \|}  = v_p$$
+
+Distribute the minus signs...
+
+$$\frac{  v_b\bm{\vec{\beta}}  \cdot    (\bm{\vec{d}} - \bm{\vec{b}_1} - v_b t\bm{\vec{\beta}})  }{\|  \bm{\vec{d}} - \bm{\vec{b}_1} - v_b t\bm{\vec{\beta}}  \|}  = v_p$$
+
+Say $\bm{\vec{\alpha}} = \bm{\vec{d}} - \bm{\vec{b}_1}$
+
+$$\frac{  v_b\bm{\vec{\beta}}  \cdot    (\bm{\vec{\alpha}} - v_b t\bm{\vec{\beta}})  }{\|  \bm{\vec{\alpha}} - v_b t\bm{\vec{\beta}}  \|}  = v_p$$
+
+Distribute the dot product.
+$$\frac{  v_b\bm{\vec{\beta}}  \cdot    \bm{\vec{\alpha}} - v_b^2 t  }{\|  \bm{\vec{\alpha}} - v_b t\bm{\vec{\beta}}  \|}  = v_p$$
+
+Move the denominator to the other side. 
+$$ v_b\bm{\vec{\beta}}  \cdot    \bm{\vec{\alpha}} - v_b^2 t  = v_p \|  \bm{\vec{\alpha}} - v_b t\bm{\vec{\beta}}  \|$$
+
+Square both sides:
+$$ (v_b\bm{\vec{\beta}}  \cdot    \bm{\vec{\alpha}} - v_b^2 t)^2  = v_p^2  (\bm{\vec{\alpha}} - v_b t\bm{\vec{\beta}}) \cdot (\bm{\vec{\alpha}} - v_b t\bm{\vec{\beta}}) $$
+
 
 \end{document}

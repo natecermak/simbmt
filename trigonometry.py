@@ -80,6 +80,71 @@ def closest_point_to_segment(x, s1, s2):
     return nearest
 
 
+def find_best_dropoff_on_segment(x, s1, s2, vp, vb):
+    """ Given a segment, should you get off at the beginning, somewhere in the middle
+    or the end of the route, in order to minimize your total time?
+    """
+    x = np.array(x)
+    s1 = np.array(s1)
+    s2 = np.array(s2)
+    
+    alpha = x - s1
+    beta = (s2 - s1) / np.linalg.norm(s2 - s1)
+    ab = alpha @ beta
+    d_max = np.linalg.norm(s2 - s1)
+
+    a = vp**2 - vb**2
+    b = 2 * ab * (vb - vp**2 / vb)
+    c = (vp / vb) ** 2 * (alpha @ alpha) - ab**2
+
+    discriminant = b**2 - 4 * a * c 
+    roots = (-b + np.array([-1, 1]) * np.sqrt(discriminant)) / (2 * a)
+
+    options = {
+        0: np.linalg.norm(s1 - x) / vp,
+        d_max: np.linalg.norm(s2 - x) / vp,
+    }
+    for root in roots:
+        if root > 0 and root < d_max:
+            options[root] = root / vb + np.linalg.norm(x - (s1 + root * beta)) / vp
+
+    key = min(options, key=options.get)
+    return key, options[key]
+
+
+def find_best_dropoff_point(x, timetable, vp, vb):
+    """ Given a timetable, where should you get off to get to x as quickly as possible?
+    @param x: 2d numpy array containing coordinates of destination
+    @param timetable: (n x 5) list of lists or numpy array
+    @param vp: speed of passenger walking
+    @param vb: speed of bus
+    @returns:
+        time of arrival
+        time to get off
+        segment (row of timetable) to get off at
+        coordinates to get off at
+    """
+
+    best_time = np.inf
+    best_i = -1
+    for i, (t0, x1, y1, x2, y2) in enumerate(timetable):
+        s1 = np.array([x1, y1])
+        s2 = np.array([x2, y2])
+        time = t0 + find_best_dropoff_on_segment(x, s1, s2, vp, vb)[1]
+        print(f"Segment {i} from {s1} to {s2} starting at {t0=:.1f}, optimal arrival t={time:.1f}")
+        if time < best_time:
+            best_time = time
+            print("new best time!")
+    return best_time
+
+
+def test_find_best_dropoff_on_segment():
+    np.testing.assert_almost_equal(
+        find_best_dropoff_on_segment([1,5], [0,0], [0,10], 0.1, 1), 
+        np.array([4.8994962, 14.9498744]),
+    )
+
+
 def test_closest_point_to_segment():
     np.testing.assert_almost_equal(
         closest_point_to_segment([0,0], [1,-1], [1,1]), 
@@ -133,4 +198,5 @@ def when_to_get_off_bus():
 if __name__ == "__main__":
     # test_is_acute_triangle()
     # test_get_accessible_region()
-    test_closest_point_to_segment()
+    # test_closest_point_to_segment()
+    test_find_best_dropoff_on_segment()
