@@ -1,4 +1,7 @@
+import logging
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 
 def is_acute_triangle(p1, p2, p3):
@@ -6,7 +9,7 @@ def is_acute_triangle(p1, p2, p3):
     b = np.linalg.norm(np.array(p3) - np.array(p1))
     c = np.linalg.norm(np.array(p3) - np.array(p2))
     sides = np.sort([a, b, c])
-    print(sides)
+
     return sides[2] ** 2 < sides[1] ** 2 + sides[0] ** 2
 
 
@@ -128,10 +131,10 @@ def find_best_dropoff_point(x, timetable, vp, vb):
         s1 = np.array([x1, y1])
         s2 = np.array([x2, y2])
         time = t0 + find_best_dropoff_on_segment(x, s1, s2, vp, vb)[1]
-        print(f"Segment {i} from {s1} to {s2} starting at {t0=:.1f}, optimal arrival t={time:.1f}")
+        logger.debug(f"Segment {i} from {s1} to {s2} starting at {t0=:.1f}, optimal arrival t={time:.1f}")
         if time < best_time:
             best_time = time
-            print("new best time!")
+            logger.debug("new best time!")
     return best_time
 
 
@@ -144,27 +147,33 @@ def test_find_best_dropoff_on_segment():
 
 def test_closest_point_to_segment():
     np.testing.assert_almost_equal(
-        closest_point_to_segment([0, 0], [1, -1], [1, 1]), np.array([1, 0])
+        closest_point_to_segment([0, 0], [1, -1], [1, 1]),
+        np.array([1, 0]),
     )
 
     np.testing.assert_almost_equal(
-        closest_point_to_segment([0, 0], [1, -0.7], [1, 1]), np.array([1, 0])
+        closest_point_to_segment([0, 0], [1, -0.7], [1, 1]),
+        np.array([1, 0]),
     )
 
     np.testing.assert_almost_equal(
-        closest_point_to_segment([0, 0], [1, 2], [1, 1]), np.array([1, 1])
+        closest_point_to_segment([0, 0], [1, 2], [1, 1]),
+        np.array([1, 1]),
     )
 
     np.testing.assert_almost_equal(
-        closest_point_to_segment([0, 0], [1, -2], [1, -1]), np.array([1, -1])
+        closest_point_to_segment([0, 0], [1, -2], [1, -1]),
+        np.array([1, -1]),
     )
 
     np.testing.assert_almost_equal(
-        closest_point_to_segment([0, 0], [1, 0], [10, 0]), np.array([1, 0])
+        closest_point_to_segment([0, 0], [1, 0], [10, 0]),
+        np.array([1, 0]),
     )
 
     np.testing.assert_almost_equal(
-        closest_point_to_segment([0, 0], [-10, 0], [10, 0]), np.array([0, 0])
+        closest_point_to_segment([0, 0], [-10, 0], [10, 0]),
+        np.array([0, 0]),
     )
 
 

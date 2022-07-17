@@ -8,15 +8,13 @@ import trigonometry as trig
 logger = logging.getLogger(__name__)
 
 
-# TODO: a route should be a 2-column np array, not a list of 2x2 np arrays.
-
-
 class StaticRouteOracle:
+
     def __init__(self, params: Dict):
         self.params = params  # keep track of simulation parameters
-
-    def set_grid_routes(self, nx: int, ny: int) -> None:
         self.routes = []
+
+    def add_grid_routes(self, nx: int, ny: int) -> None:
         for i in range(nx):
             if nx == 1:
                 self.routes.append(np.array([[0, 0.5], [1, 0.5]]))
@@ -28,18 +26,25 @@ class StaticRouteOracle:
             else:
                 self.routes.append(np.array([[i / (ny - 1), 0], [i / (ny - 1), 1]]))
 
-    def set_spoke_routes(self, ns: int) -> None:
+    def add_spoke_routes(self, ns: int) -> None:
         # TODO: define this
         pass
 
-    def set_hub_and_spoke_routes(self, nh: int, ns: int) -> None:
+    def add_hub_and_spoke_routes(self, nh: int, ns: int) -> None:
         # TODO: define this
         pass
 
-    def set_single_square_route(self, ns: int) -> None:
-        self.routes = []
-        a = 0.1
-        self.routes.append(np.array[[a, a], [1 - a, a]])
+    def add_single_square_route(self, inset: float) -> None:
+        self.routes.append(
+            np.array(
+                [
+                    [inset, inset], 
+                    [1 - inset, inset], 
+                    [1 - inset, 1 - inset], 
+                    [inset, 1 - inset]
+                ]
+            )
+        )
 
     def initialize_busses(self, state, num_routes: int) -> None:
         # evenly distribute busses between routes
@@ -95,23 +100,35 @@ class StaticRouteOracle:
 
         # check which buses it is even possible to get on
         for bus in state.busses:
-            print(f"Bus {bus.id} on route {bus.route}")
+            logger.debug(f"Bus {bus.id} on route {bus.route}")
+            
             timetable = self.get_bus_timetable(bus, 1)
             accessible_timetable = []
+            found_accessible_segment = False
             for row in timetable:
+                if not found_accessible_segment:
+                    accessible_segment = trig.get_accessible_region(
+                        p=passenger.loc,
+                        b1=row[1:3],
+                        b2=row[3:5],
+                        t1=row[0],
+                        vp=self.params["passenger_speed"],
+                        vb=self.params["bus_speed"],
+                    )
+                    if accessible_segment is None:
+                        logger.debug(f"  Unreachable: {row}")
+                    else:
+                        found_accessible_segment = True
+                        # TODO: get_accessible_region should probably return this entire row
+                        #       (that is, this calculation shouldn't be here)
+                        t0 = row[0] + np.linalg.norm(accessible_segment[0] - row[1:3]) / self.params["bus_speed"]
+                        new_row = [t0, *accessible_segment[0], *row[3:5]]
+                        accessible_timetable.append(new_row)
 
-                accessible_segment = trig.get_accessible_region(
-                    p=passenger.loc,
-                    b1=row[1:3],
-                    b2=row[3:5],
-                    t1=row[0],
-                    vp=self.params["passenger_speed"],
-                    vb=self.params["bus_speed"],
-                )
-                if accessible_segment is None:
-                    print(f"  Unreachable: {row}")
+                        logger.debug(f"  Can reach:   {row}")
+                        logger.debug(f"  Reachable:   {new_row}")
+                        logger.debug(f"  => All subsequent segments are reachable")
                 else:
-                    print(f"  Can reach:   {row}")
                     accessible_timetable.append(row)
 
             dropoff_time = trig.find_best_dropoff_point(
@@ -120,7 +137,7 @@ class StaticRouteOracle:
                 vp=self.params["passenger_speed"],
                 vb=self.params["bus_speed"],
             )
-            print(f"best dropoff time for this bus: {dropoff_time}")
+            logger.debug(f"best dropoff time for this bus: {dropoff_time:.1f}")
 
         # TODO: Placeholder for now
         passenger.plan = True

@@ -77,7 +77,8 @@ state = State(
 # oracle = NaberOracle(simulation_parameters, state)
 
 oracle = StaticRouteOracle(simulation_parameters)
-oracle.set_grid_routes(3, 0)
+#oracle.add_grid_routes(nx=3, ny=0)
+oracle.add_single_square_route(inset=0.1)
 oracle.initialize_busses(state, num_routes=len(oracle.routes))
 
 # state.plot()
