@@ -39,7 +39,7 @@ class StaticRouteOracle:
     def set_single_square_route(self, ns: int) -> None:
         self.routes = []
         a = 0.1
-        self.routes.append(np.array[[a, a], [1-a, a]])
+        self.routes.append(np.array[[a, a], [1 - a, a]])
 
     def initialize_busses(self, state, num_routes: int) -> None:
         # evenly distribute busses between routes
@@ -97,33 +97,33 @@ class StaticRouteOracle:
         for bus in state.busses:
             print(f"Bus {bus.id} on route {bus.route}")
             timetable = self.get_bus_timetable(bus, 1)
+            accessible_timetable = []
             for row in timetable:
 
-                ls = trig.get_accessible_region(
+                accessible_segment = trig.get_accessible_region(
                     p=passenger.loc,
                     b1=row[1:3],
                     b2=row[3:5],
                     t1=row[0],
-                    vp=self.params['passenger_speed'],
-                    vb=self.params['bus_speed'],
+                    vp=self.params["passenger_speed"],
+                    vb=self.params["bus_speed"],
                 )
-                if ls is None:
+                if accessible_segment is None:
                     print(f"  Unreachable: {row}")
                 else:
                     print(f"  Can reach:   {row}")
+                    accessible_timetable.append(row)
 
             dropoff_time = trig.find_best_dropoff_point(
                 x=passenger.destination,
-                timetable=timetable,
-                vp=self.params['passenger_speed'],
-                vb=self.params['bus_speed'],
+                timetable=accessible_timetable,
+                vp=self.params["passenger_speed"],
+                vb=self.params["bus_speed"],
             )
-            print(f'best dropoff time for this bus: {dropoff_time}')
-
+            print(f"best dropoff time for this bus: {dropoff_time}")
 
         # TODO: Placeholder for now
         passenger.plan = True
-
 
     def get_bus_timetable(self, bus, t_max):
         """ get a n x 5 table (t, x0, y0, x1, y1) from NOW (t=0) till t=t=max """
@@ -136,7 +136,10 @@ class StaticRouteOracle:
 
         for i in range(1, 10):
             # time at which the bus starts this line segment
-            table[i, 0] = table[i - 1, 0] + np.linalg.norm(table[i-1, 3:5] - table[i-1, 1:3]) / self.params['bus_speed']
+            table[i, 0] = (
+                table[i - 1, 0]
+                + np.linalg.norm(table[i - 1, 3:5] - table[i - 1, 1:3]) / self.params["bus_speed"]
+            )
 
             # start and end coordinates of this segment
             table[i, 1:3] = route[(bus.tci + i - 1) % len(route)]

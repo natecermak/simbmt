@@ -71,7 +71,7 @@ def closest_point_to_segment(x, s1, s2):
     t = (v @ u) / (v @ v)
 
     if t >= 0 and t <= 1:
-        nearest = (1-t) * s1 + t * s2
+        nearest = (1 - t) * s1 + t * s2
     else:
         d1 = np.linalg.norm(x - s1)
         d2 = np.linalg.norm(x - s2)
@@ -87,23 +87,20 @@ def find_best_dropoff_on_segment(x, s1, s2, vp, vb):
     x = np.array(x)
     s1 = np.array(s1)
     s2 = np.array(s2)
-    
+
     alpha = x - s1
     beta = (s2 - s1) / np.linalg.norm(s2 - s1)
     ab = alpha @ beta
     d_max = np.linalg.norm(s2 - s1)
 
-    a = vp**2 - vb**2
-    b = 2 * ab * (vb - vp**2 / vb)
-    c = (vp / vb) ** 2 * (alpha @ alpha) - ab**2
+    a = vp ** 2 - vb ** 2
+    b = 2 * ab * (vb - vp ** 2 / vb)
+    c = (vp / vb) ** 2 * (alpha @ alpha) - ab ** 2
 
-    discriminant = b**2 - 4 * a * c 
+    discriminant = b ** 2 - 4 * a * c
     roots = (-b + np.array([-1, 1]) * np.sqrt(discriminant)) / (2 * a)
 
-    options = {
-        0: np.linalg.norm(s1 - x) / vp,
-        d_max: np.linalg.norm(s2 - x) / vp,
-    }
+    options = {0: np.linalg.norm(s1 - x) / vp, d_max: np.linalg.norm(s2 - x) / vp}
     for root in roots:
         if root > 0 and root < d_max:
             options[root] = root / vb + np.linalg.norm(x - (s1 + root * beta)) / vp
@@ -140,40 +137,34 @@ def find_best_dropoff_point(x, timetable, vp, vb):
 
 def test_find_best_dropoff_on_segment():
     np.testing.assert_almost_equal(
-        find_best_dropoff_on_segment([1,5], [0,0], [0,10], 0.1, 1), 
+        find_best_dropoff_on_segment([1, 5], [0, 0], [0, 10], 0.1, 1),
         np.array([4.8994962, 14.9498744]),
     )
 
 
 def test_closest_point_to_segment():
     np.testing.assert_almost_equal(
-        closest_point_to_segment([0,0], [1,-1], [1,1]), 
-        np.array([1,0])
-    )
-    
-    np.testing.assert_almost_equal(
-        closest_point_to_segment([0,0], [1,-0.7], [1,1]), 
-        np.array([1,0])
-    )
-    
-    np.testing.assert_almost_equal(
-        closest_point_to_segment([0,0], [1,2], [1,1]), 
-        np.array([1,1])
-    )
-    
-    np.testing.assert_almost_equal(
-        closest_point_to_segment([0,0], [1,-2], [1,-1]), 
-        np.array([1,-1])
+        closest_point_to_segment([0, 0], [1, -1], [1, 1]), np.array([1, 0])
     )
 
     np.testing.assert_almost_equal(
-        closest_point_to_segment([0,0], [1,0], [10,0]), 
-        np.array([1,0])
+        closest_point_to_segment([0, 0], [1, -0.7], [1, 1]), np.array([1, 0])
     )
 
     np.testing.assert_almost_equal(
-        closest_point_to_segment([0,0], [-10,0], [10,0]), 
-        np.array([0,0])
+        closest_point_to_segment([0, 0], [1, 2], [1, 1]), np.array([1, 1])
+    )
+
+    np.testing.assert_almost_equal(
+        closest_point_to_segment([0, 0], [1, -2], [1, -1]), np.array([1, -1])
+    )
+
+    np.testing.assert_almost_equal(
+        closest_point_to_segment([0, 0], [1, 0], [10, 0]), np.array([1, 0])
+    )
+
+    np.testing.assert_almost_equal(
+        closest_point_to_segment([0, 0], [-10, 0], [10, 0]), np.array([0, 0])
     )
 
 

@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 np.set_printoptions(precision=2)
 
+
 class State:
     def __init__(self, busses: List[Bus], passengers: List[Passenger]):
         self.busses = busses
@@ -61,14 +62,15 @@ simulation_parameters = dict(
 )
 
 #### Define initial state
+test_passenger = Passenger(
+    id=0, source=np.array([0.2, 0.2]), destination=np.array([0.8, 0.2]), start_time=0
+)
 state = State(
     busses=[
         Bus(id=i, route=0, loc=np.random.rand(2), passengers=[])
         for i in range(simulation_parameters["n_bus"])
     ],
-    passengers=[
-        Passenger(id=0, source=np.ones(2) * 0.2, destination=np.ones(2) * 0.8, start_time=0)
-    ],
+    passengers=[test_passenger],
 )
 
 ####################### Define and instantiate the oracle #####################
