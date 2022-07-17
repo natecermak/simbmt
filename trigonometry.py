@@ -13,13 +13,12 @@ def is_acute_triangle(p1, p2, p3):
     return sides[2] ** 2 < sides[1] ** 2 + sides[0] ** 2
 
 
-def test_is_acute_triangle():
-    assert not is_acute_triangle([0, 0], [1, 0], [1, 1])
-    assert is_acute_triangle([0, 0], [1, 0], [0.5, 1])
-
-
 def get_accessible_region(p, b1, b2, t1: float, vp: float, vb: float):
-    # coerce, ensure they're numpy arrays
+    """ If a bus will traverse line segment b1->b2 starting at time t1, what
+    (if any) subsegment can a passenger starting at point p reach?
+    TODO: Finish docstring! This function is important.
+    """
+     # coerce, ensure they're numpy arrays
     p = np.array(p)
     b1 = np.array(b1)
     b2 = np.array(b2)
@@ -138,11 +137,13 @@ def find_best_dropoff_point(x, timetable, vp, vb):
     return best_time
 
 
-def test_find_best_dropoff_on_segment():
-    np.testing.assert_almost_equal(
-        find_best_dropoff_on_segment([1, 5], [0, 0], [0, 10], 0.1, 1),
-        np.array([4.8994962, 14.9498744]),
-    )
+def distance_to_segment(x, s1, s2):
+    return np.linalg.norm(x - closest_point_to_segment(x, s1, s2))
+
+
+def test_is_acute_triangle():
+    assert not is_acute_triangle([0, 0], [1, 0], [1, 1])
+    assert is_acute_triangle([0, 0], [1, 0], [0.5, 1])
 
 
 def test_closest_point_to_segment():
@@ -177,10 +178,6 @@ def test_closest_point_to_segment():
     )
 
 
-def distance_to_segment(x, s1, s2):
-    return np.linalg.norm(x - closest_point_to_segment(x, s1, s2))
-
-
 def test_get_accessible_region():
     p = (0, 0)
     b1 = (1, -1)
@@ -191,9 +188,11 @@ def test_get_accessible_region():
     print(get_accessible_region(p, b1, b2, t1=1, vp=1, vb=10))
 
 
-def when_to_get_off_bus():
-    pass
-
+def test_find_best_dropoff_on_segment():
+    np.testing.assert_almost_equal(
+        find_best_dropoff_on_segment([1, 5], [0, 0], [0, 10], 0.1, 1),
+        np.array([4.8994962, 14.9498744]),
+    )
 
 if __name__ == "__main__":
     # test_is_acute_triangle()

@@ -88,6 +88,8 @@ class StaticRouteOracle:
                 self.derive_plan(passenger, state)
             # TODO:
             # passenger.vel = derive_vel_from_plan(passenger)
+            # FOR TESTING ONLY:
+            passenger.vel = np.array([0.001, 0.001])
 
     def pickup_and_dropoff(self, state, time) -> None:
         pass
@@ -139,7 +141,12 @@ class StaticRouteOracle:
             )
             logger.debug(f"best dropoff time for this bus: {dropoff_time:.1f}")
 
-        # TODO: Placeholder for now
+        # plan should consist of a sequence of time windows
+        #   from time t0 to t1, walk from loc1 to loc2
+        #   from time t2 to t3, ride bus X
+        #   from time t3 to t4, get off and walk from loc3 to loc4
+        # TODO: WHAT IS THE DATA STRUCTURE?
+
         passenger.plan = True
 
     def get_bus_timetable(self, bus, t_max):

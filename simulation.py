@@ -35,6 +35,8 @@ class State:
 
         for p in self.passengers:
             plt.arrow(*p.source, *(p.destination - p.source), width=0.005)
+            plt.arrow(*p.source, *(p.loc - p.source), width=0.005)
+            plt.arrow(*p.loc, *(p.destination - p.loc), width=0.005)
 
         plt.xlim([0, 1])
         plt.ylim([0, 1])
@@ -99,7 +101,15 @@ for i in range(350):
     # let the busses do their thing:
     oracle.route(state)  # first determine their velocities
     for bus in state.busses:  # update their positions
+        # TODO: enforce check that bus.vel is a valid velocity (doesnt exceed speed limits)
         bus.loc += bus.vel
+        for p in bus.passengers:
+            p.loc = bus.loc
+    for p in state.passengers:  # update their positions
+        if not p.on_bus:
+            # TODO: enforce check that passenger velocity is valid
+            p.loc += p.vel
+
     oracle.pickup_and_dropoff(state, i)  # do pickups and dropoffs
 
     # update metrics

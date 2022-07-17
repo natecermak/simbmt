@@ -12,7 +12,7 @@ class Passenger:
         self.id = id
         self.source = source  # 2-element numpy array (x, y) where spawned
         self.on_bus = False
-        self.loc = source  # if on_bus==True, this should be ignored
+        self.loc = source.copy()
         self.destination = destination
         self.start_time = start_time
         self.end_time = np.nan
