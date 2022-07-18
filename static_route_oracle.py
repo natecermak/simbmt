@@ -92,7 +92,14 @@ class StaticRouteOracle:
             passenger.vel = np.array([0.001, 0.001])
 
     def pickup_and_dropoff(self, state, time) -> None:
-        pass
+        for p in state.passengers:
+            # if (p's plan is to board BUS `bus`) and
+            #    (p is near last line segment travelled for bus):
+            #       bus.pickup(p)
+            #       update p's plan to reflect that they're gotten picked up
+
+            # if p.on_bus and the bus
+            pass
 
     def derive_plan(self, passenger, state):
         # 1. check the walking time. that's a cheap upper bound.
@@ -143,11 +150,20 @@ class StaticRouteOracle:
 
         # plan should consist of a sequence of time windows
         #   from time t0 to t1, walk from loc1 to loc2
-        #   from time t2 to t3, ride bus X
-        #   from time t3 to t4, get off and walk from loc3 to loc4
+        #   t1 - t2: wait for bus (don't move)
+        #   t2 - t3: ride bus X
+        #   t3 - t4: get off and walk from loc3 to loc4
         # TODO: WHAT IS THE DATA STRUCTURE?
+        # Actions: walk, wait, get on, get off
 
-        passenger.plan = True
+        # passenger.plan = [
+        #     ['walk', start_time, end_time, start_loc, end_loc]
+        #     ['wait', start_time, end_time, start_loc, end_loc]
+        #     ['ride', start_time, end_time, start_loc, end_loc]
+        #     ['walk', start_time, end_time, start_loc, end_loc]
+        # ]
+        # passenger.plan_counter = 0
+        passenger.plan = True # TODO: this is a placeholder so `plan` exists
 
     def get_bus_timetable(self, bus, t_max):
         """ get a n x 5 table (t, x0, y0, x1, y1) from NOW (t=0) till t=t=max """
@@ -169,8 +185,7 @@ class StaticRouteOracle:
             table[i, 1:3] = route[(bus.tci + i - 1) % len(route)]
             table[i, 3:5] = route[(bus.tci + i) % len(route)]
 
-        # print(f"Bus {bus.id} on route {bus.route} has upcoming timetable:")
-        # print(table)
-        # input()
+        # logger.debug(f"Bus {bus.id} on route {bus.route} has upcoming timetable:")
+        # logger.debug(table)
 
         return table

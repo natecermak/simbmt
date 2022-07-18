@@ -110,12 +110,13 @@ for i in range(350):
             # TODO: enforce check that passenger velocity is valid
             p.loc += p.vel
 
+    # TODO: oracle should request pickups/dropoffs, simulation should execute
     oracle.pickup_and_dropoff(state, i)  # do pickups and dropoffs
 
-    # update metrics
+    # removed passengers who arrived (`completed` passengers) and update metrics
     completed = []
     for p in state.passengers:
-        if np.linalg.norm(p.loc - p.destination) < simulation_parameters["pickup_eps"]:
+        if np.linalg.norm(p.loc - p.destination) < simulation_parameters["pickup_eps"] and not p.on_bus:
             p.end_time = i
             logging.debug(f"Passenger {p.id} arrived in {p.end_time - p.start_time} timesteps")
             completed.append(p)

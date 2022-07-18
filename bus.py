@@ -24,7 +24,7 @@ class Bus:
             passenger.on_bus = True
             logger.debug(f"Passenger {passenger.id}, Bus {self.id}, pickup at {self.loc}")
         else:
-            raise ValueError("Passenger is too far to pick up or is already on bus!!")
+            raise ValueError(f"Passenger {passenger.id} is already on bus!!")
 
     def dropoff(self, passenger: Passenger, time: int) -> None:
         self.passengers.remove(passenger)
