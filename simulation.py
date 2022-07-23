@@ -79,7 +79,7 @@ state = State(
 # oracle = NaberOracle(simulation_parameters, state)
 
 oracle = StaticRouteOracle(simulation_parameters)
-#oracle.add_grid_routes(nx=3, ny=0)
+# oracle.add_grid_routes(nx=3, ny=0)
 oracle.add_single_square_route(inset=0.1)
 oracle.initialize_busses(state, num_routes=len(oracle.routes))
 
@@ -116,7 +116,10 @@ for i in range(350):
     # removed passengers who arrived (`completed` passengers) and update metrics
     completed = []
     for p in state.passengers:
-        if np.linalg.norm(p.loc - p.destination) < simulation_parameters["pickup_eps"] and not p.on_bus:
+        if (
+            np.linalg.norm(p.loc - p.destination) < simulation_parameters["pickup_eps"]
+            and not p.on_bus
+        ):
             p.end_time = i
             logging.debug(f"Passenger {p.id} arrived in {p.end_time - p.start_time} timesteps")
             completed.append(p)

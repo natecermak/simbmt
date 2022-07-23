@@ -18,7 +18,7 @@ def get_accessible_region(p, b1, b2, t1: float, vp: float, vb: float):
     (if any) subsegment can a passenger starting at point p reach?
     TODO: Finish docstring! This function is important.
     """
-     # coerce, ensure they're numpy arrays
+    # coerce, ensure they're numpy arrays
     p = np.array(p)
     b1 = np.array(b1)
     b2 = np.array(b2)
@@ -85,6 +85,15 @@ def closest_point_to_segment(x, s1, s2):
 def find_best_dropoff_on_segment(x, s1, s2, vp, vb):
     """ Given a segment, should you get off at the beginning, somewhere in the middle
     or the end of the route, in order to minimize your total time?
+    @param x: coordinates of the destination (2-element numpy vector)
+    @param s1: start coordinates of the segment (2-element numpy vector)
+    @param s2: end coordinates of the segment (2-element numpy vector)
+    @param vp, vb: passenger and bus speed, respectively
+    @returns: a dictionary, containing:
+        coords: optimal dropoff coordinates
+        distance: how far you should go along the segment S
+        time: how long you should stay on the bus before getting off
+        arrival_time: your actual time arriving at your destination
     """
     x = np.array(x)
     s1 = np.array(s1)
@@ -102,13 +111,22 @@ def find_best_dropoff_on_segment(x, s1, s2, vp, vb):
     discriminant = b ** 2 - 4 * a * c
     roots = (-b + np.array([-1, 1]) * np.sqrt(discriminant)) / (2 * a)
 
-    options = {0: np.linalg.norm(s1 - x) / vp, d_max: np.linalg.norm(s2 - x) / vp}
+    # arrival_times is a dictionary from (how far you travel on the segment) to (how long it takes to arrive)
+    arrival_times = {0: np.linalg.norm(s1 - x) / vp, d_max: np.linalg.norm(s2 - x) / vp}
     for root in roots:
         if root > 0 and root < d_max:
-            options[root] = root / vb + np.linalg.norm(x - (s1 + root * beta)) / vp
+            arrival_times[root] = root / vb + np.linalg.norm(x - (s1 + root * beta)) / vp
 
-    key = min(options, key=options.get)
-    return key, options[key]
+    distance_along_segment = min(arrival_times, key=arrival_times.get)
+    dropoff_coordinates = s1 + beta * distance_along_segment
+
+    return_dict = {
+        "coords": dropoff_coordinates,
+        "distance": distance_along_segment,
+        "time": distance_along_segment / vb,
+        "arrival_time": arrival_times[distance_along_segment],
+    }
+    return return_dict
 
 
 def find_best_dropoff_point(x, timetable, vp, vb):
@@ -124,17 +142,26 @@ def find_best_dropoff_point(x, timetable, vp, vb):
         coordinates to get off at
     """
 
-    best_time = np.inf
-    best_i = -1
+    best_arrival_time = None
+    best_dropoff = None
     for i, (t0, x1, y1, x2, y2) in enumerate(timetable):
         s1 = np.array([x1, y1])
         s2 = np.array([x2, y2])
-        time = t0 + find_best_dropoff_on_segment(x, s1, s2, vp, vb)[1]
-        logger.debug(f"Segment {i} from {s1} to {s2} starting at {t0=:.1f}, optimal arrival t={time:.1f}")
-        if time < best_time:
-            best_time = time
-            logger.debug("new best time!")
-    return best_time
+        dropoff = find_best_dropoff_on_segment(x, s1, s2, vp, vb)
+        dropoff["arrival_time"] += t0
+        if best_arrival_time is None or dropoff["arrival_time"] < best_arrival_time:
+            logger.debug(
+                f"New optimal dropoff: Segment {i} from {s1} to {s2} "
+                f"starting at {t0=:.1f}, arriving at {dropoff['arrival_time']:.1f}"
+            )
+            best_arrival_time = dropoff["arrival_time"]
+            best_dropoff = dropoff
+            # add a bunch of extra fields
+            best_dropoff["segment_start"] = np.array([x1, y1])
+            best_dropoff["segment_end"] = np.array([x2, y2])
+            best_dropoff["timetable_index"] = i
+
+    return best_dropoff
 
 
 def distance_to_segment(x, s1, s2):
@@ -148,33 +175,27 @@ def test_is_acute_triangle():
 
 def test_closest_point_to_segment():
     np.testing.assert_almost_equal(
-        closest_point_to_segment([0, 0], [1, -1], [1, 1]),
-        np.array([1, 0]),
+        closest_point_to_segment([0, 0], [1, -1], [1, 1]), np.array([1, 0])
     )
 
     np.testing.assert_almost_equal(
-        closest_point_to_segment([0, 0], [1, -0.7], [1, 1]),
-        np.array([1, 0]),
+        closest_point_to_segment([0, 0], [1, -0.7], [1, 1]), np.array([1, 0])
     )
 
     np.testing.assert_almost_equal(
-        closest_point_to_segment([0, 0], [1, 2], [1, 1]),
-        np.array([1, 1]),
+        closest_point_to_segment([0, 0], [1, 2], [1, 1]), np.array([1, 1])
     )
 
     np.testing.assert_almost_equal(
-        closest_point_to_segment([0, 0], [1, -2], [1, -1]),
-        np.array([1, -1]),
+        closest_point_to_segment([0, 0], [1, -2], [1, -1]), np.array([1, -1])
     )
 
     np.testing.assert_almost_equal(
-        closest_point_to_segment([0, 0], [1, 0], [10, 0]),
-        np.array([1, 0]),
+        closest_point_to_segment([0, 0], [1, 0], [10, 0]), np.array([1, 0])
     )
 
     np.testing.assert_almost_equal(
-        closest_point_to_segment([0, 0], [-10, 0], [10, 0]),
-        np.array([0, 0]),
+        closest_point_to_segment([0, 0], [-10, 0], [10, 0]), np.array([0, 0])
     )
 
 
@@ -193,6 +214,7 @@ def test_find_best_dropoff_on_segment():
         find_best_dropoff_on_segment([1, 5], [0, 0], [0, 10], 0.1, 1),
         np.array([4.8994962, 14.9498744]),
     )
+
 
 if __name__ == "__main__":
     # test_is_acute_triangle()

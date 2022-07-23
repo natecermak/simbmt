@@ -9,7 +9,6 @@ logger = logging.getLogger(__name__)
 
 
 class StaticRouteOracle:
-
     def __init__(self, params: Dict):
         self.params = params  # keep track of simulation parameters
         self.routes = []
@@ -37,12 +36,7 @@ class StaticRouteOracle:
     def add_single_square_route(self, inset: float) -> None:
         self.routes.append(
             np.array(
-                [
-                    [inset, inset], 
-                    [1 - inset, inset], 
-                    [1 - inset, 1 - inset], 
-                    [inset, 1 - inset]
-                ]
+                [[inset, inset], [1 - inset, inset], [1 - inset, 1 - inset], [inset, 1 - inset]]
             )
         )
 
@@ -89,7 +83,10 @@ class StaticRouteOracle:
             # TODO:
             # passenger.vel = derive_vel_from_plan(passenger)
             # FOR TESTING ONLY:
-            passenger.vel = np.array([0.001, 0.001])
+            passenger.vel = passenger.plan["pickup_coords"] - passenger.loc
+            norm = np.linalg.norm(passenger.vel)
+            if norm > self.params["passenger_speed"]:
+                passenger.vel = passenger.vel / norm * self.params["passenger_speed"]
 
     def pickup_and_dropoff(self, state, time) -> None:
         for p in state.passengers:
@@ -106,11 +103,18 @@ class StaticRouteOracle:
         walking_time = (
             np.linalg.norm(passenger.destination - passenger.loc) / self.params["passenger_speed"]
         )
+        logging.debug(f"Coming up with plan for passenger {passenger.id}")
+        logging.debug(f"Walking time would be {walking_time:.2f}.")
+
+        best_bus = None
+        best_time = walking_time
+
+        plan = {}
 
         # check which buses it is even possible to get on
         for bus in state.busses:
             logger.debug(f"Bus {bus.id} on route {bus.route}")
-            
+
             timetable = self.get_bus_timetable(bus, 1)
             accessible_timetable = []
             found_accessible_segment = False
@@ -130,40 +134,38 @@ class StaticRouteOracle:
                         found_accessible_segment = True
                         # TODO: get_accessible_region should probably return this entire row
                         #       (that is, this calculation shouldn't be here)
-                        t0 = row[0] + np.linalg.norm(accessible_segment[0] - row[1:3]) / self.params["bus_speed"]
+                        t0 = (
+                            row[0]
+                            + np.linalg.norm(accessible_segment[0] - row[1:3])
+                            / self.params["bus_speed"]
+                        )
                         new_row = [t0, *accessible_segment[0], *row[3:5]]
                         accessible_timetable.append(new_row)
 
-                        logger.debug(f"  Can reach:   {row}")
-                        logger.debug(f"  Reachable:   {new_row}")
+                        logger.debug(f"  Can reach:            {row}")
+                        logger.debug(f"    Reachable subset:   {new_row}")
                         logger.debug(f"  => All subsequent segments are reachable")
                 else:
                     accessible_timetable.append(row)
 
-            dropoff_time = trig.find_best_dropoff_point(
+            dropoff = trig.find_best_dropoff_point(
                 x=passenger.destination,
                 timetable=accessible_timetable,
                 vp=self.params["passenger_speed"],
                 vb=self.params["bus_speed"],
             )
-            logger.debug(f"best dropoff time for this bus: {dropoff_time:.1f}")
+            print(f"{id(dropoff)=} {dropoff=}")
+            logger.debug(f"best dropoff time for this bus: {dropoff['arrival_time']:.1f}")
 
-        # plan should consist of a sequence of time windows
-        #   from time t0 to t1, walk from loc1 to loc2
-        #   t1 - t2: wait for bus (don't move)
-        #   t2 - t3: ride bus X
-        #   t3 - t4: get off and walk from loc3 to loc4
-        # TODO: WHAT IS THE DATA STRUCTURE?
-        # Actions: walk, wait, get on, get off
+            if dropoff["arrival_time"] < best_time:
+                best_time = dropoff["arrival_time"]
+                print(accessible_timetable)
+                plan["pickup_coords"] = accessible_timetable[0][1:3]
+                plan["bus"] = bus
+                plan["dropoff"] = dropoff
 
-        # passenger.plan = [
-        #     ['walk', start_time, end_time, start_loc, end_loc]
-        #     ['wait', start_time, end_time, start_loc, end_loc]
-        #     ['ride', start_time, end_time, start_loc, end_loc]
-        #     ['walk', start_time, end_time, start_loc, end_loc]
-        # ]
-        # passenger.plan_counter = 0
-        passenger.plan = True # TODO: this is a placeholder so `plan` exists
+        print(plan)
+        passenger.plan = plan
 
     def get_bus_timetable(self, bus, t_max):
         """ get a n x 5 table (t, x0, y0, x1, y1) from NOW (t=0) till t=t=max """
