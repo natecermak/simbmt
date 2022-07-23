@@ -111,6 +111,7 @@ for i in range(350):
             p.loc += p.vel
 
     # TODO: oracle should request pickups/dropoffs, simulation should execute
+    # BUT: right now, the oracle handles the actual pickups and dropoffs
     oracle.pickup_and_dropoff(state, i)  # do pickups and dropoffs
 
     # removed passengers who arrived (`completed` passengers) and update metrics

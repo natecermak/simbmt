@@ -168,6 +168,13 @@ def distance_to_segment(x, s1, s2):
     return np.linalg.norm(x - closest_point_to_segment(x, s1, s2))
 
 
+def point_on_segment(x, s1, s2):
+    a = np.linalg.norm(x - s1)
+    b = np.linalg.norm(x - s2)
+    c = np.linalg.norm(s2 - s1)
+    return np.isclose(a + b, c)
+
+
 def test_is_acute_triangle():
     assert not is_acute_triangle([0, 0], [1, 0], [1, 1])
     assert is_acute_triangle([0, 0], [1, 0], [0.5, 1])

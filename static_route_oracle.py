@@ -91,14 +91,18 @@ class StaticRouteOracle:
 
     def pickup_and_dropoff(self, state, time) -> None:
         for p in state.passengers:
-            # if (p's plan is to board BUS `bus`) and
-            #    (p is near last line segment travelled for bus):
-            #       bus.pickup(p)
-            #       update p's plan to reflect that they're gotten picked up
+            if p.plan['bus'] is None:
+                continue
+            bus_loc = p.plan['bus'].loc
+            bus_prev_loc = p.plan['bus'].loc - p.plan['bus'].vel
+            if not p.on_bus and trig.point_on_segment(p.loc, bus_loc, bus_prev_loc):
+                p.plan['bus'].pickup(p)
 
-            # if p.on_bus and the bus
-            pass
-
+            # if p.on_bus and the bus passes the dropoff point:
+            elif p.on_bus and trig.point_on_segment(p.plan['dropoff']['coords'], bus_loc, bus_prev_loc):
+                p.plan['bus'].dropoff(p)
+                p.plan['bus'] = None
+                print(f"Updated plan, {p.plan=}")
     def derive_plan(self, passenger, state):
         # 1. check the walking time. that's a cheap upper bound.
         walking_time = (

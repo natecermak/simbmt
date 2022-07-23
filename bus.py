@@ -26,7 +26,7 @@ class Bus:
         else:
             raise ValueError(f"Passenger {passenger.id} is already on bus!!")
 
-    def dropoff(self, passenger: Passenger, time: int) -> None:
+    def dropoff(self, passenger: Passenger) -> None:
         self.passengers.remove(passenger)
         passenger.loc = (
             self.loc
