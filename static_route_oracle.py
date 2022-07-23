@@ -83,6 +83,7 @@ class StaticRouteOracle:
             # TODO:
             # passenger.vel = derive_vel_from_plan(passenger)
             # FOR TESTING ONLY:
+
             passenger.vel = passenger.plan["pickup_coords"] - passenger.loc
             norm = np.linalg.norm(passenger.vel)
             if norm > self.params["passenger_speed"]:

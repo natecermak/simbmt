@@ -91,4 +91,24 @@ Square both sides:
 $$ (v_b\bm{\vec{\beta}}  \cdot    \bm{\vec{\alpha}} - v_b^2 t)^2  = v_p^2  (\bm{\vec{\alpha}} - v_b t\bm{\vec{\beta}}) \cdot (\bm{\vec{\alpha}} - v_b t\bm{\vec{\beta}}) $$
 
 
+\section*{Problem 3}
+There is some set of buses $B$, where each bus follows some known periodic route consisting of line segments at speed $v_b$. You can also walk in arbitrary directions at speed $v_p$ (which is less than $v_b$). How do we calculate the optimal way to get from point $\bm{\vec{p}_1}$ to $\bm{\vec{p}_2}$?
+
+ \vspace{0.5cm}\noindent \textbf{Partial Answer:}
+(for the case where the perons will take 0 or 1 bus, but will not transfer between  buses.)
+
+First, calculate the time it would take for a person to walk there, $t_w$. This is an upper bound on how quickly the person can get there. 
+
+For each bus $b$:
+	1. calculate the time that the bus $b$ will begin traversing each line segment of its route, up to $t_w$.
+	2. use the solution to problem 1 (above) to figure out which line segments the passenger can walk to.
+	3. 
+
+
+\subsection*{implementation notes}
+While it's fine for the very idealized case, the passenger should probably *not* walk to the first point on the route that they can reach, because by definition, they will arrive at THE EXACT SAME TIME AS THE BUS. Instead, they probably should either:
+1. walk to the nearest point
+2. walk to the point that gives them the largest time margin (their arrival time, minus the bus' arrival time).
+I don't know which of these it should be though.
+
 \end{document}

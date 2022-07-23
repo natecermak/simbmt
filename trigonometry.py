@@ -156,7 +156,7 @@ def find_best_dropoff_point(x, timetable, vp, vb):
             )
             best_arrival_time = dropoff["arrival_time"]
             best_dropoff = dropoff
-            # add a bunch of extra fields
+            # add a bunch of extra fields in case we need them later for planning
             best_dropoff["segment_start"] = np.array([x1, y1])
             best_dropoff["segment_end"] = np.array([x2, y2])
             best_dropoff["timetable_index"] = i
