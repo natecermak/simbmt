@@ -104,18 +104,21 @@ def find_best_dropoff_on_segment(x, s1, s2, vp, vb):
     ab = alpha @ beta
     d_max = np.linalg.norm(s2 - s1)
 
+    # here, we solve the quadratic for *times* (not distances) when bus' projected
+    # velocity onto vector-to-destination falls below passenger walking speed
     a = vp ** 2 - vb ** 2
     b = 2 * ab * (vb - vp ** 2 / vb)
     c = (vp / vb) ** 2 * (alpha @ alpha) - ab ** 2
 
     discriminant = b ** 2 - 4 * a * c
     roots = (-b + np.array([-1, 1]) * np.sqrt(discriminant)) / (2 * a)
+    distances = np.array([0, *(roots * vb), d_max])
+    distances = distances[(distances >= 0) & (distances <= d_max)]
 
     # arrival_times is a dictionary from (how far you travel on the segment) to (how long it takes to arrive)
-    arrival_times = {0: np.linalg.norm(s1 - x) / vp, d_max: np.linalg.norm(s2 - x) / vp}
-    for root in roots:
-        if root > 0 and root < d_max:
-            arrival_times[root] = root / vb + np.linalg.norm(x - (s1 + root * beta)) / vp
+    arrival_times = {}
+    for d in distances:
+        arrival_times[d] = d / vb + np.linalg.norm(x - (s1 + d * beta)) / vp
 
     distance_along_segment = min(arrival_times, key=arrival_times.get)
     dropoff_coordinates = s1 + beta * distance_along_segment
@@ -149,11 +152,13 @@ def find_best_dropoff_point(x, timetable, vp, vb):
         s2 = np.array([x2, y2])
         dropoff = find_best_dropoff_on_segment(x, s1, s2, vp, vb)
         dropoff["arrival_time"] += t0
+        dropoff["time"] += t0
         if best_arrival_time is None or dropoff["arrival_time"] < best_arrival_time:
             logger.debug(
                 f"New optimal dropoff: Segment {i} from {s1} to {s2} "
                 f"starting at {t0=:.1f}, arriving at {dropoff['arrival_time']:.1f}"
             )
+            logger.debug(f"{dropoff=}")
             best_arrival_time = dropoff["arrival_time"]
             best_dropoff = dropoff
             # add a bunch of extra fields in case we need them later for planning
@@ -217,9 +222,10 @@ def test_get_accessible_region():
 
 
 def test_find_best_dropoff_on_segment():
+    dropoff = find_best_dropoff_on_segment([0.8, 0.2], [0.1, 0.1], [0.9, 0.1], 0.003, 0.03)
     np.testing.assert_almost_equal(
-        find_best_dropoff_on_segment([1, 5], [0, 0], [0, 10], 0.1, 1),
-        np.array([4.8994962, 14.9498744]),
+        dropoff['coords'],
+        np.array([0.7899496, 0.1]),
     )
 
 

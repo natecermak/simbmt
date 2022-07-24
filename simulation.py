@@ -3,6 +3,7 @@ from typing import List
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+import matplotlib.colors as mcolors
 import numpy as np
 
 from passenger import Passenger
@@ -13,7 +14,12 @@ from naber_oracle import NaberOracle
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s :: %(levelname)s :: %(message)s")
 logger = logging.getLogger(__name__)
 
-np.set_printoptions(precision=2)
+np.set_printoptions(precision=4)
+
+
+def _line(x1, x2, *args, **kwargs):
+    """Draw a line segment from x1 to x2"""
+    plt.plot([x1[0], x2[0]], [x1[1], x2[1]], *args, **kwargs)
 
 
 class State:
@@ -34,9 +40,11 @@ class State:
             ax.text(*bus.loc, text, props, rotation=angle)
 
         for p in self.passengers:
-            plt.arrow(*p.source, *(p.destination - p.source), width=0.005)
-            plt.arrow(*p.source, *(p.loc - p.source), width=0.005)
-            plt.arrow(*p.loc, *(p.destination - p.loc), width=0.005)
+            color = list(mcolors.TABLEAU_COLORS)[p.id % len(mcolors.TABLEAU_COLORS)]
+            plt.arrow(*p.source, *(p.destination - p.source), width=0.005, color=color)
+            _line(p.source, p.loc, color=color, linestyle='dashed')
+            _line(p.loc, p.destination, color=color, linestyle='dashed')
+            plt.plot(*p.loc, color=color, marker='o')
 
         plt.xlim([0, 1])
         plt.ylim([0, 1])
@@ -57,7 +65,7 @@ class State:
 # oracle and simulation both need access to this dictionary
 simulation_parameters = dict(
     n_bus=3,  # number of busses
-    passenger_rate=0.0,  # per timestep
+    passenger_rate=0.04,  # per timestep
     bus_speed=0.03,  # city length, per timestep
     passenger_speed=0.003,  # city length, per timestep
     pickup_eps=1e-4,  # pickup radius
@@ -81,13 +89,15 @@ state = State(
 oracle = StaticRouteOracle(simulation_parameters)
 # oracle.add_grid_routes(nx=3, ny=0)
 oracle.add_single_square_route(inset=0.1)
+oracle.add_single_square_route(inset=0.25)
+oracle.add_single_square_route(inset=0.4)
 oracle.initialize_busses(state, num_routes=len(oracle.routes))
 
 # state.plot()
 # plt.show()
 
 ############################ Run the actual simulation ########################
-for i in range(350):
+for i in range(1000):
 
     # plot state
     if i % 1 == 0:
@@ -104,7 +114,7 @@ for i in range(350):
         # TODO: enforce check that bus.vel is a valid velocity (doesnt exceed speed limits)
         bus.loc += bus.vel
         for p in bus.passengers:
-            p.loc = bus.loc
+            p.loc[:] = bus.loc
     for p in state.passengers:  # update their positions
         if not p.on_bus:
             # TODO: enforce check that passenger velocity is valid

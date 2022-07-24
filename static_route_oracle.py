@@ -82,16 +82,21 @@ class StaticRouteOracle:
                 self.derive_plan(passenger, state)
             # TODO:
             # passenger.vel = derive_vel_from_plan(passenger)
-            # FOR TESTING ONLY:
 
-            passenger.vel = passenger.plan["pickup_coords"] - passenger.loc
+            # FOR TESTING ONLY:
+            if 'bus' in passenger.plan and passenger.plan['bus'] is not None:
+                # go to the bus
+                passenger.vel = passenger.plan["pickup_coords"] - passenger.loc
+            else:
+                # passenger already did the bus -- go to destination
+                passenger.vel = passenger.destination - passenger.loc
             norm = np.linalg.norm(passenger.vel)
             if norm > self.params["passenger_speed"]:
                 passenger.vel = passenger.vel / norm * self.params["passenger_speed"]
 
     def pickup_and_dropoff(self, state, time) -> None:
         for p in state.passengers:
-            if p.plan['bus'] is None:
+            if 'bus' not in p.plan or p.plan['bus'] is None:
                 continue
             bus_loc = p.plan['bus'].loc
             bus_prev_loc = p.plan['bus'].loc - p.plan['bus'].vel
@@ -103,6 +108,8 @@ class StaticRouteOracle:
                 p.plan['bus'].dropoff(p)
                 p.plan['bus'] = None
                 print(f"Updated plan, {p.plan=}")
+
+
     def derive_plan(self, passenger, state):
         # 1. check the walking time. that's a cheap upper bound.
         walking_time = (
@@ -153,23 +160,25 @@ class StaticRouteOracle:
                 else:
                     accessible_timetable.append(row)
 
+            if len(accessible_timetable) == 0:
+                continue
+
             dropoff = trig.find_best_dropoff_point(
                 x=passenger.destination,
                 timetable=accessible_timetable,
                 vp=self.params["passenger_speed"],
                 vb=self.params["bus_speed"],
             )
-            print(f"{id(dropoff)=} {dropoff=}")
+
             logger.debug(f"best dropoff time for this bus: {dropoff['arrival_time']:.1f}")
 
             if dropoff["arrival_time"] < best_time:
                 best_time = dropoff["arrival_time"]
-                print(accessible_timetable)
                 plan["pickup_coords"] = accessible_timetable[0][1:3]
                 plan["bus"] = bus
                 plan["dropoff"] = dropoff
 
-        print(plan)
+        print("PLAN: ", plan)
         passenger.plan = plan
 
     def get_bus_timetable(self, bus, t_max):

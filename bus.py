@@ -28,8 +28,7 @@ class Bus:
 
     def dropoff(self, passenger: Passenger) -> None:
         self.passengers.remove(passenger)
-        passenger.loc = (
-            self.loc
-        )  # TODO: is this right? should this be handled by the simulation manager?
+        # TODO: is this right? should this be handled by the simulation manager?
+        passenger.loc[:] = self.loc  # note: '[:]' is necessary to copy values, not copy pointer
         passenger.on_bus = False
         logger.debug(f"Passenger {passenger.id}, Bus {self.id}, dropoff at {self.loc}")
